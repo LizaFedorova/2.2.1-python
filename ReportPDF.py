@@ -6,6 +6,7 @@ from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 from jinja2 import Template
 import pdfkit
+#Меняю файл в ветке master
 
 class DataSet:
     def __init__(self):
