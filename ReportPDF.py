@@ -8,9 +8,10 @@ from jinja2 import Template
 import pdfkit
 
 class DataSet:
-    def __init__(self, file):
-        self.file = file
-        self.vacancies = [Vacancy(vac) for vac in self.csv_filer(*self.csv_reader(file))]
+    def __init__(self):
+        self.file = input("Введите название файла: ")
+        self.vacancy_name = input("Введите название профессии: ")
+        self.vacancies = [Vacancy(vac) for vac in self.csv_filer(*self.csv_reader(self.file))]
 
     def delete_html(self, new_html):
         result = re.compile(r'<[^>]+>').sub('', new_html)
@@ -50,8 +51,9 @@ class Vacancy:
         self.published_at = dictionary['published_at']
 
 class Report:
-    def __init__(self, years_salary, years_vacs_count, prof_years_salary, prof_years_vacs_count, city_salary,
-                 city_vacs_rate):
+    def __init__(self, vacancy_name, years_salary, years_vacs_count, prof_years_salary, prof_years_vacs_count,
+                 city_salary, city_vacs_rate):
+        self.vacancy_name = vacancy_name
         self.years_salary = years_salary
         self.years_vacs_count = years_vacs_count
         self.prof_years_salary = prof_years_salary
@@ -61,7 +63,7 @@ class Report:
         self.years_sheet_headers = ['Год', 'Средняя зарплата', 'Средняя зарплата - Программист', 'Количество вакансий',
                                'Количество вакансий - Программист']
         years_sheet_columns = [list(years_salary.keys()), list(years_salary.values()),
-                           list(prof_years_salary.values()), list(years_vacs_count.values()),
+                           list(years_vacs_count.values()), list(prof_years_salary.values()),
                            list(prof_years_vacs_count.values())]
         self.years_sheet_rows = self.get_table_rows(years_sheet_columns)
         self.city_sheet_headers = ['Город', 'Уровень зарплат', ' ', 'Город', 'Доля вакансий']
@@ -129,12 +131,12 @@ class Report:
         fig.tight_layout(h_pad=2)
         fig.savefig("graph.png")
 
-    def generate_pdf(self, vacancy):
+    def generate_pdf(self):
         self.generate_schedule()
         html = open("pdf_template.html").read()
         template = Template(html)
         keys_to_values = {
-            "title": "Аналитика по зарплатам и городам для профессии " + vacancy,
+            "title": "Аналитика по зарплатам и городам для профессии " + self.vacancy_name,
             "image_name": "graph.png",
             "years_title": "Статистика по годам",
             "years_headers": self.years_sheet_headers,
@@ -182,7 +184,7 @@ def get_salary_statistic(vacs_list: List[Vacancy], fields, vac_name: str = ''):
 
     return statistic_result
 
-def get_vacancies_statistic(vacs_list: List[Vacancy], fields, vac_name: str = ''):
+def get_vacancies_statistic(vacs_list: List[Vacancy], length, fields, vac_name: str = ''):
     statistic_result = {}
     for vac in vacs_list:
         if vac.__getattribute__(fields) not in statistic_result.keys():
@@ -195,35 +197,40 @@ def get_vacancies_statistic(vacs_list: List[Vacancy], fields, vac_name: str = ''
 
     if fields == 'area_name':
         for key in statistic_result.keys():
-            statistic_result[key] = round(statistic_result[key] / len(new_data.vacancies), 4)
+            statistic_result[key] = round(statistic_result[key] / length, 4)
 
     return statistic_result
 
-file = input("Введите название файла: ")
-vacancy = input("Введите название профессии: ")
-new_data = DataSet(file)
-new_dict = {}
+def create_report():
+    new_data = DataSet()
+    new_dict = {}
 
-for vacs in new_data.vacancies:
-    vacs.published_at = get_data(vacs.published_at)
-    if vacs.area_name not in new_dict.keys():
-        new_dict[vacs.area_name] = 0
-    new_dict[vacs.area_name] += 1
+    for vacs in new_data.vacancies:
+        vacs.published_at = get_data(vacs.published_at)
+        if vacs.area_name not in new_dict.keys():
+            new_dict[vacs.area_name] = 0
+        new_dict[vacs.area_name] += 1
 
-needed_vacs = list(filter(lambda x: int(len(new_data.vacancies) * 0.01) <= new_dict[x.area_name], new_data.vacancies))
-years_salary = get_statistic(get_salary_statistic(new_data.vacancies, 'published_at').items(), 0,
-                             'Динамика уровня зарплат по годам: ')
-years_vacs_count = get_statistic(get_vacancies_statistic(new_data.vacancies, 'published_at').items(), 0,
-                                 'Динамика количества вакансий по годам: ')
-prof_years_salary = get_statistic(get_salary_statistic(new_data.vacancies, 'published_at', vacancy).items(), 0,
-                                  'Динамика уровня зарплат по годам для выбранной профессии: ')
-prof_years_vacs_count = get_statistic(get_vacancies_statistic(new_data.vacancies, 'published_at', vacancy).items(), 0,
-                                      'Динамика количества вакансий по годам для выбранной профессии: ')
-city_salary = get_statistic(get_salary_statistic(needed_vacs, 'area_name').items(), 1,
-                            'Уровень зарплат по городам (в порядке убывания): ', 10, True)
-city_vacs_rate = get_statistic(get_vacancies_statistic(needed_vacs, 'area_name').items(), 1,
-                               'Доля вакансий по городам (в порядке убывания): ', 10, True)
+    needed_vacs = list(
+        filter(lambda x: int(len(new_data.vacancies) * 0.01) <= new_dict[x.area_name], new_data.vacancies))
+    years_salary = get_statistic(get_salary_statistic(new_data.vacancies, 'published_at').items(), 0,
+                                 'Динамика уровня зарплат по годам: ')
+    years_vacs_count = get_statistic(get_vacancies_statistic(new_data.vacancies, len(new_data.vacancies), 'published_at').items(), 0,
+                                     'Динамика количества вакансий по годам: ')
+    prof_years_salary = get_statistic(
+        get_salary_statistic(new_data.vacancies, 'published_at', new_data.vacancy_name).items(), 0,
+        'Динамика уровня зарплат по годам для выбранной профессии: ')
+    prof_years_vacs_count = get_statistic(
+        get_vacancies_statistic(new_data.vacancies, len(new_data.vacancies), 'published_at', new_data.vacancy_name).items(), 0,
+        'Динамика количества вакансий по годам для выбранной профессии: ')
+    city_salary = get_statistic(get_salary_statistic(needed_vacs, 'area_name').items(), 1,
+                                'Уровень зарплат по городам (в порядке убывания): ', 10, True)
+    city_vacs_rate = get_statistic(get_vacancies_statistic(needed_vacs, len(new_data.vacancies), 'area_name').items(),1,
+                                   'Доля вакансий по городам (в порядке убывания): ', 10, True)
 
-report = Report(years_salary, years_vacs_count, prof_years_salary, prof_years_vacs_count, city_salary,
-       city_vacs_rate)
-report.generate_pdf(vacancy)
+    report = Report(new_data.vacancy_name, years_salary, years_vacs_count, prof_years_salary, prof_years_vacs_count,
+                    city_salary, city_vacs_rate)
+    report.generate_pdf()
+
+if __name__ == '__main__':
+    create_report()
