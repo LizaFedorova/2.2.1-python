@@ -4,15 +4,45 @@ import re
 import datetime
 
 class DataSet:
+    """
+    Считывание файла и формирование удобной структуры данных.
+
+    :param file: Название считываемого файла
+    :type file: str
+
+    :param vacancies: Лист вакансий
+    :type vacancies: list
+    """
     def __init__(self):
+        """
+        Инициализирует объект класса DataSet.
+        """
         self.file = input("Введите название файла: ")
         self.vacancies = [Vacancy(vac) for vac in self.csv_filer(*self.csv_reader(self.file))]
 
-    def delete_html(self, new_html):
+    def delete_html(self, new_html) -> str:
+        """
+        Функция удаления HTML-тегов и лишних пробелов из поля.
+
+        :param new_html: Очищаемое поле
+        :type new_html: str
+
+        :return: Очищенное поле
+        :rtype: str
+        """
         result = re.compile(r'<[^>]+>').sub('', new_html)
         return result if '\n' in new_html else " ".join(result.split())
 
-    def csv_reader(self, file):
+    def csv_reader(self, file) -> tuple:
+        """
+        Считывание csv-файла с проверкой есть ли данные в файле.
+
+        :param file: Название считываемого файла
+        :type file: str
+
+        :return: Заголовки файла и данные о вакансиях
+        :rtype: tuple
+        """
         reader = csv.reader(open(file, encoding='utf_8_sig'))
         new_vacancies = [row for row in reader]
         if len(new_vacancies) == 0:
@@ -22,23 +52,110 @@ class DataSet:
         else:
             return new_vacancies[0], new_vacancies[1:]
 
-    def csv_filer(self, headers, vacancies):
+    def csv_filer(self, headers, vacancies) -> list:
+        """
+        Отчищает лист вакансий от пустых элементов, создает словарь вакансий.
+
+        :param headers: Заголовки csv файла
+        :type headers: list
+
+        :param vacancies: Описания вакансий
+        :type vacancies: list
+
+        :return: Лист со словарями для каждой вакансии
+        :rtype: list
+        """
         vacancies_list = list(filter(lambda vac: (len(vac) == len(headers) and vac.count('') == 0), vacancies))
         vacanies_dictionary = [dict(zip(headers, map(self.delete_html, vac))) for vac in vacancies_list]
         return vacanies_dictionary
 
 class Salary:
+    """
+    Класс для представления зарплаты.
+
+    :param salary_from: Нижняя граница вилки оклада
+    :type salary_from: str or int or float
+
+    :param salary_to: Верхняя граница вилки оклада
+    :type salary_to: str or int or float
+
+    :param salary_gross: Оклад указан до вычета налогов
+    :type salary_gross: str
+
+    :param salary_currency: Идентификатор валюты оклада
+    :type salary_currency: str
+    """
     def __init__(self, salary_from, salary_to, salary_gross, salary_currency):
+        """
+        Инициализирует объект Salary, переводит зарплату в рубли.
+
+        :param salary_from: Нижняя граница вилки оклада
+        :type salary_from: str or int or float
+
+        :param salary_to: Верхняя граница вилки оклада
+        :type salary_to: str or int or float
+
+        :param salary_gross: Оклад указан до вычета налогов
+        :type salary_gross: str
+
+        :param salary_currency: Идентификатор валюты оклада
+        :type salary_currency: str
+        """
         self.salary_from = salary_from
         self.salary_to = salary_to
         self.salary_gross = salary_gross
         self.salary_currency = salary_currency
 
     def to_RUB(self, salary: float) -> float:
+        """
+        Переводит валюту в рубли при помощи словаря currency_to_rub.
+
+        :param salary: Значение оклада
+        :type salary: float
+
+        :return: Значение оклада в рублях
+        :rtype: float
+        """
         return salary * currency_to_rub[self.salary_currency]
 
 class Vacancy:
+    """
+    Класс для представления вакансии.
+
+    :param name: Название вакансии
+    :type name: str
+
+    :param description: Описание вакансии
+    :type description: str
+
+    :param key_skills: Навыки
+    :type key_skills: list
+
+    :param experience_id: Опыт работы
+    :type experience_id: str
+
+    :param premium: Премиум-вакансия
+    :type premium: str
+
+    :param employer_name: Название компании
+    :type employer_name: str
+
+    :param salary: Оклад вакансий
+    :type salary: Salary
+
+    :param area_name: Название региона
+    :type area_name: str
+
+    :param published_at: Дата публикации вакансии
+    :type published_at: str
+    """
     def __init__(self, dict_vac):
+        """
+        Инициализирует объект класса Vacancy.
+
+        :param dict_vac: Словарь с данными о вакансиях
+        :type dict_vac: dict
+        """
         self.name = dict_vac['name']
         self.description = dict_vac['description']
         self.key_skills = dict_vac['key_skills'].split('\n')
@@ -51,7 +168,34 @@ class Vacancy:
         self.published_at = dict_vac['published_at']
 
 class InputConect:
+    """
+    Сбор входных данных, создание таблицы с вакансиями и вывод ее в консоль.
+
+    :param vacs_list: Лист с вакансиями
+    :type vacs_list: list
+
+    :param filter_param: Параметр фильтрации
+    :type filter_param: str or list
+
+    :param sorting_parameter: Парметр сортировки
+    :type sorting_parameter: str
+
+    :param reverse_sort_order: Обратный порядок сортировки
+    :type reverse_sort_order: str
+
+    :param vacancies_range: Диапазон вывода вакансий
+    :type vacancies_range: list
+
+    :param output_columns: Требуемые столбцы таблицы
+    :type output_columns: list
+    """
     def __init__(self, vacs_list):
+        """
+        Инициализация объекта InputCorrect.
+
+        :param vacs_list: Лист с вакансиями
+        :type vacs_list: list
+        """
         self.vacs_list = vacs_list
         self.filter_param = input("Введите параметр фильтрации: ")
         self.sorting_parameter = input("Введите параметр сортировки: ")
@@ -60,6 +204,11 @@ class InputConect:
         self.output_columns = input("Введите требуемые столбцы: ").split(", ")
 
     def print_vacancies(self) -> None:
+        """
+        Функция создания таблицы PrettyTable, применение фильтрации и сортировки словарей.
+
+        :return: Выводит таблицу в консоль
+        """
         if self.filter_param != '' and ": " not in self.filter_param:
             get_exit("Формат ввода некорректен")
         self.filter_param = self.filter_param.split(": ")
@@ -121,16 +270,51 @@ currency_to_rub = {"AZN": 35.68, "BYR": 23.91, "EUR": 59.90, "GEL": 21.74, "KGS"
 
 exp_values = {"noExperience": 0, "between1And3": 1, "between3And6": 2, "moreThan6": 3}
 
-def get_exit(message):
+def get_exit(message) -> None:
+    """
+    Преднамеренное завершение программы с выводом сообщения в консоль.
+
+    :param message: Текст сообщения
+    :type message: str
+
+    :return: Завершает программу
+    """
     print(message)
     exit()
 
-def formatter(new_vacancy: Vacancy):
-    def get_data(date):
+def formatter(new_vacancy: Vacancy) -> list:
+    """
+    Функция для форматирования данных в словаре вакансий.
+
+    :param new_vacancy: Лист с вакансиями
+    :type new_vacancy: Vacancy
+
+    :return: Отформатированный лист с вакансиями
+    :rtype: list
+    """
+    def get_data(date) -> str:
+        """
+        Функция для записи даты публикации вакансии в правильном формате.
+
+        :param date: Дата публикации вакансии
+        :type date: str
+
+        :return: Отформатированная дата
+        :rtype: str
+        """
         new_date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z')
         return new_date.strftime('%d.%m.%Y')
 
-    def get_salary(new_salary: Salary):
+    def get_salary(new_salary: Salary) -> str:
+        """
+        Функция для записи оклада в правильном формате.
+
+        :param new_salary: Оклад вакансии
+        :type: Salary
+
+        :return: Отформатированный оклад
+        :rtype: str
+        """
         lower_salary = int(float(new_salary.salary_from))
         lower_salary = '{0:,}'.format(lower_salary).replace(',', ' ')
         upper_salary = int(float(new_salary.salary_to))
@@ -147,7 +331,19 @@ def formatter(new_vacancy: Vacancy):
             new_vacancy.employer_name, get_salary(new_vacancy.salary), new_vacancy.area_name,
             get_data(new_vacancy.published_at)]
 
-def get_filter(list_vacs, filter_param):
+def get_filter(list_vacs, filter_param) -> list:
+    """
+    Функция для фильтрации данных в зависимости от параметра фильтрации.
+
+    :param list_vacs: Лист вакансий
+    :type list_vacs: list
+
+    :param filter_param: Параметр фильтрации
+    :type filter_param: list
+
+    :return: Отфильтрованный лист вакансий
+    :rtype: list
+    """
     if filter_param[0] == 'Оклад':
         list_vacancies = list(filter(lambda item: int(item.salary.salary_from) <= int(filter_param[1]) <= int(item.salary.salary_to),
                                                             list_vacs))
@@ -170,7 +366,19 @@ def get_filter(list_vacs, filter_param):
                                      list_vacs))
     return list_vacancies
 
-def get_range(table, vacancies_range):
+def get_range(table, vacancies_range) -> tuple:
+    """
+    Функция для получения начального и конечного индекса отображения таблицы.
+
+    :param table: Данные для таблицы
+    :type table: list
+
+    :param vacancies_range: Диапазон вывода вакансий
+    :type vacancies_range: list
+
+    :return: Начальный и конечный индекс для отображения таблицы
+    :rtype: tuple
+    """
     new_start, new_end = 0, len(table)
     if len(vacancies_range) == 0:
         return new_start, new_end
@@ -180,7 +388,22 @@ def get_range(table, vacancies_range):
         new_start = int(vacancies_range[0]) - 1
     return new_start, new_end
 
-def get_sorting(list_to_sort, sorting_param, reverse_sort_order):
+def get_sorting(list_to_sort, sorting_param, reverse_sort_order) -> list:
+    """
+    Функция для сортировки данных и проверки входных данных для сортировки.
+
+    :param list_to_sort: Лист вакансий для сортировки
+    :type list_to_sort: list
+
+    :param sorting_param: Парметр сортировки
+    :type sorting_param: str
+
+    :param reverse_sort_order: Обратный порядок сортировки
+    :type reverse_sort_order: str
+
+    :return: Отсортированный лист вакансий
+    :rtype: list
+    """
     if len(sorting_param) == 0:
         return list_to_sort
     elif sorting_param not in list(translation_dict.values()):
@@ -202,7 +425,12 @@ def get_sorting(list_to_sort, sorting_param, reverse_sort_order):
     else:
         return sorted(list_to_sort,key=lambda item: item.__getattribute__(reversed_dict[sorting_param]),reverse=reverse)
 
-def create_table():
+def create_table() -> None:
+    """
+    Функция для создания и вывода таблицы PrettyTable.
+
+    :return: Вывод таблицы в консоль
+    """
     new_data = DataSet()
     result = InputConect(new_data.vacancies)
     result.print_vacancies()
