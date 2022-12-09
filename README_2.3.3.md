@@ -10,11 +10,11 @@
 
 ![get_date_1](https://user-images.githubusercontent.com/103308669/206710817-ddc30c0d-37d1-4b11-a7d2-c332b0dbf676.png)
 
--Результаты профилизатора для второй функции (1053 ms):
+- Результаты профилизатора для второй функции (1053 ms):
 
 ![get_date_2](https://user-images.githubusercontent.com/103308669/206710874-7cc4824a-a950-4cbc-a4e3-57e1433792f2.png)
 
--Результаты профилизатора для третьей функции (295 ms):
+- Результаты профилизатора для третьей функции (295 ms):
 
 ![get_date_3](https://user-images.githubusercontent.com/103308669/206710909-425bc5a2-c648-46a6-a438-c426166a5cf8.png)
 
