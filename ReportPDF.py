@@ -6,7 +6,8 @@ from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 from jinja2 import Template
 import pdfkit
-#Меняю файл в ветке develop
+import doctest
+# Меняю файл в ветке develop
 
 class DataSet:
     """
@@ -29,7 +30,8 @@ class DataSet:
         self.vacancy_name = input("Введите название профессии: ")
         self.vacancies = [Vacancy(vac) for vac in self.csv_filer(*self.csv_reader(self.file))]
 
-    def delete_html(self, new_html) -> str:
+    @staticmethod
+    def delete_html(new_html) -> str:
         """
         Функция удаления HTML-тегов и лишних пробелов из поля.
 
@@ -38,11 +40,27 @@ class DataSet:
 
         :return: Очищенное поле
         :rtype: str
+
+        >>> DataSet.delete_html("abc")
+        'abc'
+        >>> DataSet.delete_html("<div>abc</div>")
+        'abc'
+        >>> DataSet.delete_html("<div>abc")
+        'abc'
+        >>> DataSet.delete_html("   abc  ")
+        'abc'
+        >>> DataSet.delete_html(" abc     abd")
+        'abc abd'
+        >>> DataSet.delete_html(" <div><strong><i>  abc <i>  abd  <string>")
+        'abc abd'
+        >>> DataSet.delete_html(" <div> abc <iqewqljl> <  div   > abd <i>")
+        'abc abd'
         """
         result = re.compile(r'<[^>]+>').sub('', new_html)
         return result if '\n' in new_html else " ".join(result.split())
 
-    def csv_reader(self, file) -> tuple:
+    @staticmethod
+    def csv_reader(file) -> tuple:
         """
         Считывание csv-файла с проверкой есть ли данные в файле.
 
@@ -103,9 +121,6 @@ class Salary:
         :param salary_to: Верхняя граница вилки оклада
         :type salary_to: str or int or float
 
-        :param salary_gross: Оклад указан до вычета налогов
-        :type salary_gross: str
-
         :param salary_currency: Идентификатор валюты оклада
         :type salary_currency: str
         """
@@ -122,6 +137,15 @@ class Salary:
 
         :return: Значение оклада в рублях
         :rtype: float
+
+        >>> Salary(10.0, 20, 'RUR').to_rub(10.0 + 20)
+        30.0
+        >>> Salary(10, 20.0, 'RUR').to_rub(10 + 20.0)
+        30.0
+        >>> Salary(10, 20, 'EUR').to_rub(10 + 20)
+        1797.0
+        >>> Salary(10, 20, 'AZN').to_rub(10 + 20)
+        1070.4
         """
         return new_salary * currency_to_rub[self.salary_currency]
 
@@ -235,7 +259,8 @@ class Report:
                            list(map(self.get_percents, city_vacs_rate.values()))]
         self.city_sheet_rows = self.get_table_rows(city_sheet_columns)
 
-    def get_percents(self, value) -> str:
+    @staticmethod
+    def get_percents(value) -> str:
         """
         Функция для получения процентов.
 
@@ -244,10 +269,24 @@ class Report:
 
         :return: Значение в процентах
         :rtype: str
+
+        >>> Report.get_percents(0)
+        '0%'
+        >>> Report.get_percents(1)
+        '100%'
+        >>> Report.get_percents(0.5)
+        '50.0%'
+        >>> Report.get_percents(0.753)
+        '75.3%'
+        >>> Report.get_percents(0.7001)
+        '70.01%'
+        >>> Report.get_percents(0.70015)
+        '70.02%'
         """
         return f"{round(value * 100, 2)}%"
 
-    def get_table_rows(self, columns: list) -> list:
+    @staticmethod
+    def get_table_rows(columns: list) -> list:
         """
         Функция для транспанирования списка списков - первод столбцов в строки.
 
@@ -256,6 +295,15 @@ class Report:
 
         :return: Список строк
         :rtype: list
+
+        >>> Report.get_table_rows([[1]])
+        [[1]]
+        >>> Report.get_table_rows([[1, 1], [2, 2]])
+        [[1, 2], [1, 2]]
+        >>> Report.get_table_rows([[1, 2, 3], [1, 2, 3], [1, 2, 3]])
+        [[1, 1, 1], [2, 2, 2], [3, 3, 3]]
+        >>> Report.get_table_rows([[1, 2, 3], [1, 2, 3], [1, 2, 10]])
+        [[1, 1, 1], [2, 2, 2], [3, 3, 10]]
         """
         rows_list = [["" for _ in range(len(columns))] for _ in range(len(columns[0]))]
         for col in range(len(columns)):
@@ -263,7 +311,8 @@ class Report:
                 rows_list[cell][col] = columns[col][cell]
         return rows_list
 
-    def create_regular_schedule(self, ax: Axes, keys1, keys2, values1, values2, label1, label2, title) -> None:
+    @staticmethod
+    def create_regular_schedule(ax: Axes, keys1, keys2, values1, values2, label1, label2, title) -> None:
         """
         Функция для создания 2-х обычных столбчатых диаграмм на одном поле.
 
@@ -322,7 +371,8 @@ class Report:
         plt.rcParams['font.size'] = 16
         ax.set_title(title, fontsize=16)
 
-    def create_horizontal_schedule(self, ax: Axes, keys, values, title) -> None:
+    @staticmethod
+    def create_horizontal_schedule(ax: Axes, keys, values, title) -> None:
         """
         Функция создания горизонтальной диаграммы.
 
@@ -411,6 +461,9 @@ def get_data(date) -> int:
 
     :return: Отформатированная дата
     :rtype: int
+
+    >>> get_data('2022-05-31T17:32:49+0300')
+    2022
     """
     new_date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z')
     return int(new_date.strftime('%Y'))
@@ -548,4 +601,5 @@ def create_report() -> None:
     report.generate_pdf()
 
 if __name__ == '__main__':
+    doctest.testmod()
     create_report()

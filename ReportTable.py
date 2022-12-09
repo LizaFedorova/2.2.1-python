@@ -20,7 +20,8 @@ class DataSet:
         self.file = input("Введите название файла: ")
         self.vacancies = [Vacancy(vac) for vac in self.csv_filer(*self.csv_reader(self.file))]
 
-    def delete_html(self, new_html) -> str:
+    @staticmethod
+    def delete_html(new_html) -> str:
         """
         Функция удаления HTML-тегов и лишних пробелов из поля.
 
@@ -29,11 +30,27 @@ class DataSet:
 
         :return: Очищенное поле
         :rtype: str
+
+        >>> DataSet.delete_html("abc")
+        'abc'
+        >>> DataSet.delete_html("<div>abc</div>")
+        'abc'
+        >>> DataSet.delete_html("<div>abc")
+        'abc'
+        >>> DataSet.delete_html("   abc  ")
+        'abc'
+        >>> DataSet.delete_html(" abc     abd")
+        'abc abd'
+        >>> DataSet.delete_html(" <div><strong><i>  abc <i>  abd  <string>")
+        'abc abd'
+        >>> DataSet.delete_html(" <div> abc <iqewqljl> <  div   > abd <i>")
+        'abc abd'
         """
         result = re.compile(r'<[^>]+>').sub('', new_html)
         return result if '\n' in new_html else " ".join(result.split())
 
-    def csv_reader(self, file) -> tuple:
+    @staticmethod
+    def csv_reader(file) -> tuple:
         """
         Считывание csv-файла с проверкой есть ли данные в файле.
 
@@ -80,7 +97,7 @@ class Salary:
     :type salary_to: str or int or float
 
     :param salary_gross: Оклад указан до вычета налогов
-    :type salary_gross: str
+    :type salary_gross: bool
 
     :param salary_currency: Идентификатор валюты оклада
     :type salary_currency: str
@@ -96,17 +113,26 @@ class Salary:
         :type salary_to: str or int or float
 
         :param salary_gross: Оклад указан до вычета налогов
-        :type salary_gross: str
+        :type salary_gross: bool
 
         :param salary_currency: Идентификатор валюты оклада
         :type salary_currency: str
+
+        >>> Salary(10.0, 20.4, True, 'RUR').salary_from
+        10.0
+        >>> Salary(10.0, 20.4, True, 'RUR').salary_to
+        20.4
+        >>> Salary(10.0, 20.4, True, 'RUR').salary_gross
+        True
+        >>> Salary(10.0, 20.4, True, 'RUR').salary_currency
+        'RUR'
         """
         self.salary_from = salary_from
         self.salary_to = salary_to
         self.salary_gross = salary_gross
         self.salary_currency = salary_currency
 
-    def to_RUB(self, salary: float) -> float:
+    def to_rub(self, salary: float) -> float:
         """
         Переводит валюту в рубли при помощи словаря currency_to_rub.
 
@@ -115,6 +141,15 @@ class Salary:
 
         :return: Значение оклада в рублях
         :rtype: float
+
+        >>> Salary(10.0, 20, True, 'RUR').to_rub(10.0 + 20)
+        30.0
+        >>> Salary(10, 20.0, True, 'RUR').to_rub(10 + 20.0)
+        30.0
+        >>> Salary(10, 20, True, 'EUR').to_rub(10 + 20)
+        1797.0
+        >>> Salary(10, 20, True, 'AZN').to_rub(10 + 20)
+        1070.4
         """
         return salary * currency_to_rub[self.salary_currency]
 
@@ -282,6 +317,22 @@ def get_exit(message) -> None:
     print(message)
     exit()
 
+def get_data(date) -> str:
+    """
+    Функция для записи даты публикации вакансии в правильном формате.
+
+    :param date: Дата публикации вакансии
+    :type date: str
+
+    :return: Отформатированная дата
+    :rtype: str
+
+    >>> get_data('2022-05-31T17:32:49+0300')
+    '31.05.2022'
+    """
+    new_date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z')
+    return new_date.strftime('%d.%m.%Y')
+
 def formatter(new_vacancy: Vacancy) -> list:
     """
     Функция для форматирования данных в словаре вакансий.
@@ -292,18 +343,6 @@ def formatter(new_vacancy: Vacancy) -> list:
     :return: Отформатированный лист с вакансиями
     :rtype: list
     """
-    def get_data(date) -> str:
-        """
-        Функция для записи даты публикации вакансии в правильном формате.
-
-        :param date: Дата публикации вакансии
-        :type date: str
-
-        :return: Отформатированная дата
-        :rtype: str
-        """
-        new_date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z')
-        return new_date.strftime('%d.%m.%Y')
 
     def get_salary(new_salary: Salary) -> str:
         """
@@ -434,7 +473,6 @@ def create_table() -> None:
     new_data = DataSet()
     result = InputConect(new_data.vacancies)
     result.print_vacancies()
-
 
 if __name__ == '__main__':
     create_table()
