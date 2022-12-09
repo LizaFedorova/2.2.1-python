@@ -33,7 +33,7 @@ class ReportPDFUnitTests(TestCase):
         self.assertEqual(Report.get_table_rows([[1, 2, 3], [1, 2, 3], [1, 2, 10]]), [[1, 1, 1], [2, 2, 2], [3, 3, 10]])
 
     def test_get_data(self):
-        self.assertEqual(get_data('2022-05-31T17:32:49+0300'), 2022)
+        self.assertEqual(get_data_1('2022-05-31T17:32:49+0300'), 2022)
 
     def test_float_salary_from_in_to_rub(self):
         self.assertEqual(Salary(10.0, 20, 'RUR').to_rub(10.0 + 20), 30.0)

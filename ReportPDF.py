@@ -452,21 +452,45 @@ class Report:
 currency_to_rub = {"AZN": 35.68, "BYR": 23.91, "EUR": 59.90, "GEL": 21.74, "KGS": 0.76,
                    "KZT": 0.13, "RUR": 1, "UAH": 1.64, "USD": 60.66, "UZS": 0.0055}
 
-def get_data(date) -> int:
+# def get_data_1(date) -> int:
+#    """
+#    Функция для записи даты публикации вакансии в правильном формате.
+#
+#    :param date: Дата публикации вакансии
+#    :type date: str
+#
+#    :return: Отформатированная дата
+#    :rtype: int
+#
+#    >>> get_data_1('2022-05-31T17:32:49+0300')
+#    2022
+#    """
+#    new_date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z')
+#    return int(new_date.strftime('%Y'))
+
+# def get_data_2(date) -> int:
+#    """
+#    Функция для записи даты публикации вакансии в правильном формате.
+#
+#    :param date: Дата публикации вакансии
+#    :type date: int
+#
+#    :return: Отформатированная дата
+#    :rtype: int
+#    """
+#    return int(date.split("T")[0].split("-")[0])
+
+def get_data_3(date) -> int:
     """
     Функция для записи даты публикации вакансии в правильном формате.
 
     :param date: Дата публикации вакансии
-    :type date: str
+    :type date: int
 
     :return: Отформатированная дата
     :rtype: int
-
-    >>> get_data('2022-05-31T17:32:49+0300')
-    2022
     """
-    new_date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z')
-    return int(new_date.strftime('%Y'))
+    return int(date[:4])
 
 def get_statistic(result, index, new_message, slice=0, reverse=False) -> dict:
     """
@@ -575,7 +599,7 @@ def create_report() -> None:
     new_dict = {}
 
     for vacs in new_data.vacancies:
-        vacs.published_at = get_data(vacs.published_at)
+        vacs.published_at = get_data_3(vacs.published_at)
         if vacs.area_name not in new_dict.keys():
             new_dict[vacs.area_name] = 0
         new_dict[vacs.area_name] += 1
