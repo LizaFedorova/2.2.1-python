@@ -280,7 +280,7 @@ class InputConect:
         else:
             print(table.get_string(start=new_start, end=new_end))
 
-translation_dict = {"name": "Название","description": "Описание","key_skills": "Навыки","experience_id": "Опыт работы",
+translation_dict = {"name": "Название", "description": "Описание","key_skills": "Навыки","experience_id": "Опыт работы",
                     "premium": "Премиум-вакансия", "employer_name": "Компания",
                     "salary_from": "Нижняя граница вилки оклада", "salary_to": "Верхняя граница вилки оклада",
                     "salary_gross": "Оклад указан до вычета налогов", "salary_currency": "Идентификатор валюты оклада",

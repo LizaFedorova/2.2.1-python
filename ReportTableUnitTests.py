@@ -1,6 +1,7 @@
 from unittest import TestCase
 from ReportTable import *
 
+
 class ReportTableUnitTests(TestCase):
     def test_salary_from(self):
         self.assertEqual(Salary(10.0, 20.4, True, 'RUR').salary_from, 10.0)
