@@ -1,6 +1,6 @@
 # 2.2.1-python
 
-##DocTests:
+## DocTests:
 
 -ReportPDF:
 
@@ -10,7 +10,7 @@
 
 ![DocTests in ReportTable](https://user-images.githubusercontent.com/103308669/206652946-a4590d3b-a089-4c94-a585-f288a5c271b1.png)
 
-##UnitTests:
+## UnitTests:
 
 -ReportPDF:
 
