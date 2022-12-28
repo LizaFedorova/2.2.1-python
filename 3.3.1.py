@@ -63,7 +63,7 @@ class ProcessCurrencies:
                     continue
                 df.loc[len(df.index)] = row
         self.__currencies_data = df
-        df.to_csv('dataframe.csv')
+        df.to_csv('dataframe.csv', index=False)
 
     def __get_row(self, month: str, year: str) -> list or None:
         """
